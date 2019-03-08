@@ -21,10 +21,10 @@ class ComedyCorpus:
 
 	def set_name(self, name): #sets corpus display name
 		self.name = name;
-	
+
 	def set_fileid(self, fileid): #sets fileid
 		self.fileid = fileid;
-	
+
 	def set_text(self, text): #sets text field
 		self.text = text;
 
@@ -37,26 +37,30 @@ class ComedyCorpus:
 	def __iter__(self): #allows user to iterate through tokens of text
 		yield from corpus_tokenize(self.text)
 
-def corpus_tokenize(text): #defines a text token     
+def corpus_tokenize(text): #defines a text token
 	return re.compile(r"[ .?!;:'\",\[\]{}()]*\s*").split(text)
 
 def load_corpus(race_code=None, gender_code=None): #loads corpora into an array based on race and gender
 
 	if(race_code == None): # if none is specified, search all
-		race_code = ".." 
+		race_code = ".."
 	if(gender_code == None):
 		gender_code = ".."
 
-	reader = PlaintextCorpusReader(corpus_root, ".*_"+race_code+"-"+gender_code+"\.txt") # uses filename encoding to load specified texts
+	reader = PlaintextCorpusReader(corpus_root, ".*_"+race_code+"_"+gender_code+"\.txt") # uses filename encoding to load specified texts
 	corpora = []
 
 	for fileid in reader.fileids(): #creates ComedyCorpus object, populates with fileid and name
 		new_corpus = ComedyCorpus()
 		new_corpus.set_fileid(fileid)
-		new_corpus.set_text(reader.raw(fileid)) #gets word content based on fileid
+		try:
+			new_corpus.set_text(reader.raw(fileid)) #gets word content based on fileid
+		except UnicodeDecodeError:
+			continue
 		fileid = re.sub("_"+race_code+"-"+gender_code+"\.txt", "", fileid); #name is fileid without encoding
-		fileid = fileid.replace("-", " ")
+		fileid = fileid.replace("%20", " ")
 		fileid = fileid.replace("_", "; ")
+		print(fileid)
 		new_corpus.set_name(fileid)
 		corpora.append(new_corpus)
 
@@ -106,7 +110,3 @@ all_non_men = load_corpus(None, "nm")
 print("use list_transcripts(<array name>) to see a list of which transcripts are within each group")
 print("use list_corpora() to see a list of pre-existing categories of comedians")
 print("access text of corpora object using <object>.text")
-
-
-
-
